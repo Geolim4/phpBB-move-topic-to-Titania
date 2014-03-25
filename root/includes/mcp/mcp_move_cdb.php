@@ -15,7 +15,9 @@ if (!defined('IN_PHPBB'))
 {
 	exit;
 }
-// Addon options
+// Let's rock for constants' spamming !!
+
+// Options
 if (!defined('CDB_AJAX_MIN_CHARS'))
 {
 	define('CDB_AJAX_MIN_CHARS', 3);//Minimum chars required to trigger assisted typing
@@ -34,7 +36,7 @@ if (defined('CDB_LOAD_OPTIONS_ONLY'))
 	return;//Small hack to allow you to load this file only for getting options :)
 }
 
-// Let's rock for constants' spamming !!
+//Sys constants
 if (!defined('IN_TITANIA'))
 {
 	define('IN_TITANIA', true);
@@ -74,7 +76,7 @@ set_error_handler('titania_msg_handler');
 * @param array $topic_ids to move
 * @return void
 ****/
-function load_cdb($topic_ids)
+function load_cdb(array $topic_ids)
 {
 	global $phpbb_root_path, $phpEx;
 
@@ -82,6 +84,15 @@ function load_cdb($topic_ids)
 	$forum_id = request_var('f', 0);
 	$move_pm = request_var('move_pm', 0);// Checkbox
 	$contrib = request_var('contrib_permalink', '');// contrib permalink/user-keyword like
+
+	// Add a descriptive navlink
+	if (sizeof($topic_ids) == 1)
+	{
+		phpbb::$template->assign_block_vars('nav_header', array(
+			'L_TITLE' => ((CDB_MOVE_DELETE) ? phpbb::$user->lang['CDB_MOVE_TOPIC'] : phpbb::$user->lang['CDB_COPY_TOPIC']),
+			'U_TITLE' => append_sid("{$phpbb_root_path}viewtopic.$phpEx", array('f' => $forum_id, 't' => current($topic_ids))),
+		));
+	}
 
 	if (titania::confirm_box(true) && $contrib)
 	{
@@ -211,17 +222,12 @@ function load_cdb($topic_ids)
 		'contrib_support_url'	=> '',//The contrib support URL
 	)
 ****/
-function copy_cdb($topic_ids, $contrib, $ctb_row)
+function copy_cdb(array $topic_ids, $contrib, array $ctb_row)
 {
 	//Hopefully this help for huge topics
 	@set_time_limit(0);
-
 	$topicsrow = $postsrow = $attachrow = $trackrow = $watchrow = $usersrow = array();
 
-	if (!empty($topic_ids) && !is_array($topic_ids))
-	{
-		$topic_ids = array((int) $topic_ids);
-	}
 	// HAXXX (useless so essential)
 	$_REQUEST['action'] = $_POST['action'] = $_GET['action'] = 'post';
 	$_REQUEST['type'] = $_POST['type'] = $_GET['type'] = $ctb_row['category_name_clean'];
@@ -482,20 +488,22 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 					);
 
 					// Move the attachment
-					if(file_exists(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}"))
+					if (file_exists(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}"))
 					{
-						if (copy(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}", TITANIA_ROOT . phpbb::$config['upload_path'] . "/support/{$attachrow_['physical_filename']}"))
+						if (copy(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}", TITANIA_ROOT . phpbb::$config['upload_path'] . "/support/{$attachrow_['physical_filename']}") && CDB_MOVE_DELETE)
 						{
-							@unlink(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}");
+							//The delete_topics() function will do that job -_-
+							//@unlink(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/{$attachrow_['physical_filename']}");
 						}
 					}
 
 					// Move the thumbnail (if exists)
 					if ($attachrow_['thumbnail'] && file_exists(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/thumb_{$attachrow_['physical_filename']}"))
 					{
-						if (copy(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/thumb_{$attachrow_['physical_filename']}", TITANIA_ROOT . phpbb::$config['upload_path'] . "/support/thumb_{$attachrow_['physical_filename']}"))
+						if (copy(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/thumb_{$attachrow_['physical_filename']}", TITANIA_ROOT . phpbb::$config['upload_path'] . "/support/thumb_{$attachrow_['physical_filename']}") && CDB_MOVE_DELETE)
 						{
-							@unlink(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/thumb_{$attachrow_['physical_filename']}");
+							//The delete_topics() function will do that job -_-
+							//@unlink(PHPBB_ROOT_PATH . phpbb::$config['upload_path'] . "/thumb_{$attachrow_['physical_filename']}");
 						}
 					}
 				}
@@ -591,7 +599,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 			'contrib_support_url'	=> titania::$contrib->get_url('support'),
 		);
 
-		// Take care of sub.notifications!
+		// Take care of subscription notifications!
 		$email_vars = array(
 			'NAME'			=> htmlspecialchars_decode($topicsrow_['topic_title']),
 			'U_VIEW'		=> $result['contrib_topic_url'],
