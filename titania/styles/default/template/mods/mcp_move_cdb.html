@@ -44,14 +44,17 @@
 		<span class="corners-bottom"><span></span></span></div>
 	</div>
 	<div id="submit-bloc" style="display: none;">
+		<!-- IF S_CDB_MOVE_DELETE -->
 		<div class="rules" id="div_message_text" style="display: none;">
 			<span class="corners-top"><span></span></span>
 			{L_CDB_MOVE_WARNING}
 			<span class="corners-bottom"><span></span></span>
 		</div>
+		<!-- ENDIF -->
 		<div class="panel" id="submit-buttons" style="display: none;">
 			<div class="inner"><span class="corners-top"><span></span></span>
 				<fieldset class="submit-buttons">
+					<!-- IF not S_CDB_MOVE_DELETE --><p>{L_CDB_COPY_WARNING}</p><!-- ENDIF -->
 					{S_HIDDEN_FIELDS}<input type="submit" name="confirm" value="{YES_VALUE}" class="button1" />&nbsp; 
 					<input type="submit" name="cancel" value="{L_NO}" class="button2" onclick="this.form.submit();"/>
 					{S_FORM_TOKEN}
@@ -64,7 +67,6 @@
 // <![CDATA[
 	var flag_cdb = false;
 	var valid_permalink = false;
-	var min_kw_lenght = 3;
 
 	$(document).ready(function() {
 		//Fight F5 onload...
@@ -126,7 +128,7 @@
 					}
 				});
 			},
-			minLength: min_kw_lenght,
+			minLength: {S_AJAX_MIN_CHARS},
 			delay: 150,
 			select: function(event, ui) {
 				if(ui['item']['value']){
