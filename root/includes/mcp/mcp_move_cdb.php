@@ -1,11 +1,11 @@
 <?php
 /**
+* phpBB move topic to titania MCP Core
 *
-* @package mcp
-* @version $Id$
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
-*
+* author: phpbb-fr website team
+* begin: 24/03/2014
+* version: 0.0.1 - 24/03/2014
+* licence: http://opensource.org/licenses/gpl-license.php GNU Public License
 */
 
 /**
@@ -15,6 +15,25 @@ if (!defined('IN_PHPBB'))
 {
 	exit;
 }
+// Addon options
+if (!defined('CDB_AJAX_MIN_CHARS'))
+{
+	define('CDB_AJAX_MIN_CHARS', 3);//Minimum chars required to trigger assisted typing
+}
+if (!defined('CDB_MOVE_PM_ALERT'))
+{
+	define('CDB_MOVE_PM_ALERT', true);//Send a PM to the topic's owner  ?? (Will only work if CDB_MOVE_DELETE is also true)
+}
+if (!defined('CDB_MOVE_DELETE'))
+{
+	define('CDB_MOVE_DELETE', true);//Delete the phpBB source topic? If false the MOD become: Copy topic to titania MCP :)
+}
+
+if (defined('CDB_LOAD_OPTIONS_ONLY'))
+{
+	return;//Small hack to allow you to load this file only for getting options :)
+}
+
 // Let's rock for constants' spamming !!
 if (!defined('IN_TITANIA'))
 {
@@ -31,15 +50,6 @@ if (!defined('TITANIA_ROOT'))
 if (!defined('PHP_EXT'))
 {
 	define('PHP_EXT', substr(strrchr(__FILE__, '.'), 1));
-}
-// Addon options
-if (!defined('CDB_AJAX_MIN_CHARS'))
-{
-	define('CDB_AJAX_MIN_CHARS', 3);//Minimum chars required to trigger assisted typing
-}
-if (!defined('CDB_MOVE_PM_ALERT'))
-{
-	define('CDB_MOVE_PM_ALERT', true);//Send a PM to the topic's owner ??
 }
 
 // Include the beauty
@@ -90,7 +100,7 @@ function load_cdb($topic_ids)
 			//Run the machine gun, there's no survivor expected 8)
 			$topic_cdb = copy_cdb($topic_ids, $contrib, $ctb_row);
 
-			if ($move_pm && CDB_MOVE_PM_ALERT)
+			if ($move_pm && CDB_MOVE_PM_ALERT && CDB_MOVE_DELETE)
 			{
 				if (!function_exists('submit_pm'))
 				{
@@ -117,11 +127,19 @@ function load_cdb($topic_ids)
 			{
 				include($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
 			}
-			delete_topics('topic_id', $topic_ids);
+			if(CDB_MOVE_DELETE)
+			{
+				delete_topics('topic_id', $topic_ids);
+				$message =  phpbb::$user->lang['CDB_TOPIC_MOVED'];
+			}
+			else
+			{
+				$message =  phpbb::$user->lang['CDB_TOPIC_COPIED'];
+			}
 
-			$message =  phpbb::$user->lang['CDB_TOPIC_MOVED'];
 			$message .= '<br /><br />' . phpbb::$user->lang('CDB_GO_TOPIC', '<a href="' . $topic_cdb['contrib_topic_url'] . '">', '</a>');
 			$message .= '<br /><br />' . phpbb::$user->lang('CDB_GO_SUPPORT', '<a href="' . $topic_cdb['contrib_support_url'] . '">', '</a>');
+
 			if ($forum_id)
 			{
 				$message .= '<br /><br />' . phpbb::$user->lang('RETURN_FORUM', '<a href="' . append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id) . '">', '</a>');
@@ -153,6 +171,7 @@ function load_cdb($topic_ids)
 		$redirect_url = request_var('redirect', build_url(array('action', 'quickmod')));
 
 		phpbb::$template->assign_vars(array(
+			'S_CDB_MOVE_DELETE'			=> CDB_MOVE_DELETE,
 			'S_AJAX_MIN_CHARS'			=> CDB_AJAX_MIN_CHARS,
 			'S_MOVE_PM_ALERT'			=> CDB_MOVE_PM_ALERT,
 			'S_CUSTOM_CONFIRM_ACTION'	=> $s_mod_action,
@@ -170,7 +189,7 @@ function load_cdb($topic_ids)
 			'quickmod'			=> true,
 		);
 
-		titania::confirm_box(false, phpbb::$user->lang['CDB_MOVE_TOPIC' . ((sizeof($topic_ids) == 1) ? '' : 'S')], $s_mod_action, $s_hidden_fields, 'mcp_move_cdb.html');
+		titania::confirm_box(false, phpbb::$user->lang['CDB_MOVE_TOPIC' . ((sizeof($topic_ids) == 1) ? '' : 'S')], $s_mod_action, $s_hidden_fields, 'mods/mcp_move_cdb.html');
 		redirect($redirect_url);
 	}
 }
