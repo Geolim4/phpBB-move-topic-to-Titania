@@ -1,6 +1,6 @@
 <?php
 /**
-* phpBB move topic to titania MCP language [french]
+* phpBB move topic to titania MCP language [english]
 *
 * author: phpbb-fr website team
 * begin: 24/03/2014
@@ -22,24 +22,24 @@ if ( empty($lang) || !is_array($lang) )
 
 //Move to CDB
 $lang = array_merge($lang, array(
-	'CDB_CONTRIB_PERMALINK_EXPLAIN' => 'Version épurée du nom de la contribution, utilisée lors de la création contribution.
-										<br />Si vous ne le connaissez pas entrez au moins les trois premières lettres de la contribution et laissez-vous guider par la saisie assistée.',
-	'CDB_CONTRIB_TYPE_EXPLAIN' => 'Si vous ne connaissez pas le type de la contribution, sélectionnez l’option <em>Inconnue</em> afin d’élargir la zone de recherche.',//@link CDB_UNKNOWN_CATEGORY
-	'CDB_NO_AJAX_CHECK' => 'Vérifier',
-	'CDB_NO_AJAX_RESULT' => 'Aucun résultat, essayez de modifier le type de contribution.',
-	'CDB_MOVE_TOPIC' => 'Déplacer le sujet (Base de données)',
-	'CDB_MOVE_TOPICS' => 'Déplacer les sujets (Base de données)',//Not used for now, may be used later
-	'CDB_COPY_TOPIC' => 'Copier le sujet (Base de données)',
-	'CDB_COPY_TOPICS' => 'Copier les sujets (Base de données)',//Not used for now, may be used later
-	'CDB_MOVE_WARNING' => 'Attention, une fois déplacé dans la base de données, le sujet ne pourra pas être restauré dans le forum, êtes-vous sûr de vouloir continuer?',
-	'CDB_COPY_WARNING' => 'Vous êtes sur le point de copier le sujet dans la base de données, êtes-vous sûr de vouloir continuer?',
-	'CDB_SELECT_DESTINATION_CAT' => 'Choisissez la catégorie de destination',
-	'CDB_UNKNOWN_CATEGORY' => 'Inconnue',
-	'CDB_KNOWN_CATEGORY_LABEL' => 'Si vous connaissez la catégorie',
-	'CDB_UNKNOWN_CATEGORY_LABEL' => 'Si vous ne connaissez pas la catégorie',
-	'CDB_TOPIC_MOVED' => 'Le sujet a été déplacé.',
-	'CDB_TOPIC_COPIED' => 'Le sujet a été copié.',
-	'CDB_GO_TOPIC' => '%sAller au sujet déplacé%s',
-	'CDB_GO_SUPPORT' => '%sAller au support de la contribution%s',
-	'CDB_TOPIC_MOVED_PM' => 'Bonjour,<br /><br /> Un de vos sujets nommé <strong><a href="%2$s">%1$s</a></strong> dont vous êtes l’auteur, a été déplacé dans le support de la contribution <strong><a href="%4$s">%5$s</a></strong> par un modérateur ou un administrateur.<br /><br /><strong>La raison fournie pour le déplacement est la suivante:</strong> <em>%3$s</em><br /><br />Cliquez sur le lien ci-contre pour voir votre sujet:<br /><a href="%2$s">%1$s</a>',
+	'CDB_CONTRIB_PERMALINK_EXPLAIN' => 'Cleaned version of the contribution name, used to build the url for the contribution.
+										<br />If you do not know the permalink, type at least the first three letters of the contribution and let yourself be guided by semi-assisted completion.',
+	'CDB_CONTRIB_TYPE_EXPLAIN' => 'If you do not know the type of contribution, select the <em>Unknown</em> option to enlarge the search area.',//@link CDB_UNKNOWN_CATEGORY
+	'CDB_NO_AJAX_CHECK' => 'Check',
+	'CDB_NO_AJAX_RESULT' => 'No result, try modifying contribution type.',
+	'CDB_MOVE_TOPIC' => 'Move topic (Customisation database)',
+	'CDB_MOVE_TOPICS' => 'Move topics (Customisation database)',//Not used for now, may be used later
+	'CDB_COPY_TOPIC' => 'Copy topic (Customisation database)',
+	'CDB_COPY_TOPICS' => 'Copy topics (Customisation database)',//Not used for now, may be used later
+	'CDB_MOVE_WARNING' => 'Warning, once moved in the database, the topic can not be moved back in the forum, are you sure you want to continue?',
+	'CDB_COPY_WARNING' => 'You are going to copy the topic into the customisation database, are you sure want to continue?',
+	'CDB_SELECT_DESTINATION_CAT' => 'Select the target category',
+	'CDB_UNKNOWN_CATEGORY' => 'Unknown',
+	'CDB_KNOWN_CATEGORY_LABEL' => 'If you known the contribution type',
+	'CDB_UNKNOWN_CATEGORY_LABEL' => 'If you don’t known the contribution type',
+	'CDB_TOPIC_MOVED' => 'The topic has been moved.',
+	'CDB_TOPIC_COPIED' => 'The topic has been copied.',
+	'CDB_GO_TOPIC' => '%sGo to new topic%s',
+	'CDB_GO_SUPPORT' => '%sGo to the contribution support%s',
+	'CDB_TOPIC_MOVED_PM' => 'Hello,<br /><br /> A topic called  <strong><a href="%2$s">%1$s</a></strong> which has been started by you, has been moved to the contribution support <strong><a href="%4$s">%5$s</a></strong> by a moderator or administrator.<br /><br /><strong>Reason for moving your topic:</strong> <em>%3$s</em><br /><br />Click on the following link to go to your topic:<br /><a href="%2$s">%1$s</a>',
 ));

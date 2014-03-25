@@ -32,14 +32,14 @@ $lang = array_merge($lang, array(
 	'CDB_COPY_TOPIC' => 'Copier le sujet (Base de données)',
 	'CDB_COPY_TOPICS' => 'Copier les sujets (Base de données)',//Not used for now, may be used later
 	'CDB_MOVE_WARNING' => 'Attention, une fois déplacé dans la base de données, le sujet ne pourra pas être restauré dans le forum, êtes-vous sûr de vouloir continuer?',
-	'CDB_COPY_WARNING' => 'Vous êtes sur le point de copier le sujet dans la base de données, êtes-vous sûr de vouloir continuer?',
+	'CDB_COPY_WARNING' => 'Vous êtes sur le point de copier le sujet dans la base de données des contributions, êtes-vous sûr de vouloir continuer?',
 	'CDB_SELECT_DESTINATION_CAT' => 'Choisissez la catégorie de destination',
 	'CDB_UNKNOWN_CATEGORY' => 'Inconnue',
-	'CDB_KNOWN_CATEGORY_LABEL' => 'Si vous connaissez la catégorie',
-	'CDB_UNKNOWN_CATEGORY_LABEL' => 'Si vous ne connaissez pas la catégorie',
+	'CDB_KNOWN_CATEGORY_LABEL' => 'Si vous connaissez le type de contribution',
+	'CDB_UNKNOWN_CATEGORY_LABEL' => 'Si vous ne connaissez pas le type de contribution',
 	'CDB_TOPIC_MOVED' => 'Le sujet a été déplacé.',
 	'CDB_TOPIC_COPIED' => 'Le sujet a été copié.',
-	'CDB_GO_TOPIC' => '%sAller au sujet déplacé%s',
+	'CDB_GO_TOPIC' => '%sAller au nouveau sujet%s',
 	'CDB_GO_SUPPORT' => '%sAller au support de la contribution%s',
 	'CDB_TOPIC_MOVED_PM' => 'Bonjour,<br /><br /> Un de vos sujets nommé <strong><a href="%2$s">%1$s</a></strong> dont vous êtes l’auteur, a été déplacé dans le support de la contribution <strong><a href="%4$s">%5$s</a></strong> par un modérateur ou un administrateur.<br /><br /><strong>La raison fournie pour le déplacement est la suivante:</strong> <em>%3$s</em><br /><br />Cliquez sur le lien ci-contre pour voir votre sujet:<br /><a href="%2$s">%1$s</a>',
 ));
