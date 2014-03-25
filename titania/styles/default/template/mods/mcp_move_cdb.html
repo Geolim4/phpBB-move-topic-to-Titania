@@ -1,0 +1,205 @@
+<!-- INCLUDE common/overall_header.html -->
+<form onsubmit="return check_contrib_permalink()" id="confirm" action="<!-- IF S_CUSTOM_CONFIRM_ACTION -->{S_CUSTOM_CONFIRM_ACTION}<!-- ELSE -->{S_CONFIRM_ACTION}<!-- ENDIF -->" method="post">
+	<div class="panel">
+		<div class="inner"><span class="corners-top"><span></span></span>
+
+		<div class="content">
+			<h2>{MESSAGE_TITLE}</h2>
+			<!-- IF ADDITIONAL_MSG --><p>{ADDITIONAL_MSG}</p><!-- ENDIF -->
+
+			<fieldset>
+				<dl>
+					<dt><label for="contrib_type">{L_CONTRIB_TYPE}:</label><br />{L_CDB_CONTRIB_TYPE_EXPLAIN}</dt>
+					<dd>
+						<select name="contrib_type" id="contrib_type" onchange="change_contrib_type(this.value);">
+							<optgroup label="{L_CDB_KNOWN_CATEGORY_LABEL}:"> 
+							<!-- BEGIN type_select -->
+								<option value="{type_select.VALUE}"<!-- IF type_select.S_IS_SELECTED --> selected="selected"<!-- ENDIF -->>{type_select.NAME}</option>
+							<!-- END type_select -->
+							</optgroup>
+							<optgroup label="{L_CDB_UNKNOWN_CATEGORY_LABEL}:"> 
+								<option value="-1">{L_CDB_UNKNOWN_CATEGORY}</option>
+							</optgroup>
+						</select>
+					</dd>
+				</dl>
+				<div id="div_contrib_options" style="display: none;">
+					<dl id="dl_contrib_permalink">
+						<dt><label for="contrib_permalink">{L_CONTRIB_PERMALINK}:</label><br />{L_CDB_CONTRIB_PERMALINK_EXPLAIN}</dt>
+						<dd><input type="text" class="inputbox medium ui-corner-all" value="" id="contrib_permalink" name="contrib_permalink" />&nbsp;<input id="contrib_permalink_go" type="button" name="button" value="{L_CDB_NO_AJAX_CHECK}" class="button2" /></dd>
+						<!-- IF S_MOVE_PM_ALERT --><dd id="dd_move_pm" style="display: none;"><label for="move_pm"><input value="1" type="checkbox" name="move_pm" id="move_pm" onclick="if(this.checked){dE('dl_move_reason', 1, 'block')}else{dE('dl_move_reason', 0, 'none')}" />{L_EXTENTED_MOVE_TOPIC_NOTIFY}</label></dd><!-- ENDIF -->
+					</dl>
+					<!-- IF S_MOVE_PM_ALERT -->
+					<div id="div_move_reason">
+						<dl id="dl_move_reason" style="display: none;">
+							<dt><label for="move_reason">{L_EXTENTED_MOVE_REASON}</label><br /><span>{L_EXTENTED_MOVE_EXPLAIN_NOTIFY}</span></dt>
+							<dd><label for="move_reason"><textarea name="move_reason" id="move_reason" class="inputbox ui-corner-all" cols="40" rows="3"></textarea></label></dd>
+						</dl>
+					</div>
+					<!-- ENDIF -->
+				</div>
+			</fieldset>
+		</div>
+
+		<span class="corners-bottom"><span></span></span></div>
+	</div>
+	<div id="submit-bloc" style="display: none;">
+		<div class="rules" id="div_message_text" style="display: none;">
+			<span class="corners-top"><span></span></span>
+			{L_CDB_MOVE_WARNING}
+			<span class="corners-bottom"><span></span></span>
+		</div>
+		<div class="panel" id="submit-buttons" style="display: none;">
+			<div class="inner"><span class="corners-top"><span></span></span>
+				<fieldset class="submit-buttons">
+					{S_HIDDEN_FIELDS}<input type="submit" name="confirm" value="{YES_VALUE}" class="button1" />&nbsp; 
+					<input type="submit" name="cancel" value="{L_NO}" class="button2" onclick="this.form.submit();"/>
+					{S_FORM_TOKEN}
+				</fieldset>
+			<span class="corners-bottom"><span></span></span></div>
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+// <![CDATA[
+	var flag_cdb = false;
+	var valid_permalink = false;
+	var min_kw_lenght = 3;
+
+	$(document).ready(function() {
+		//Fight F5 onload...
+		change_contrib_type(0);
+		$('#move_pm').attr('checked', false);
+		$('#contrib_permalink').val('');
+
+		$("#contrib_permalink_go").click(function() {
+			ajax_contrib_permalink(true);
+		});
+		
+		$("#contrib_permalink").change(function() {
+			if($(this).val()){
+				$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').show();
+			}else{
+				$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').hide();
+			}
+			if(!flag_cdb){
+				$("#contrib_permalink").removeClass("check-ok check-fail");
+			}else{
+				flag_cdb = false;
+			}
+		});
+
+		$('head').append(
+			'<style type="text/css">' +
+				".ui-widget-content{border:1px solid #ddd;background:#EEE;color:#333}" +
+				".ui-widget-header{border:1px solid #e78f08;background:#F6A828; color:#fff;font-weight:bold}" +
+				".ui-autocomplete-loading {background: white url('{T_TITANIA_THEME_PATH}/images/ui-ajax-loading.gif') right center no-repeat;}" +
+				"#contrib_permalink.check-ok{background-color: #C3FEB7; border: 1px solid #006400;}" +
+				"#contrib_permalink.check-fail{background-color: #FEB7B7; border: 1px solid #8B0000;}" +
+			'</style>'
+		);
+
+		$("#contrib_permalink").autocomplete({
+			source: function(request, response ) {
+				$.ajax({
+					type: 'POST',
+					url: "{U_AJAX_AUTOCOMPLETE}",
+					dataType: "json",
+					beforeSend: function(){
+						$('button[type=submit], input[type=submit]').removeAttr('disabled');
+						$('button[type=submit], input[type=submit]').removeClass('disabled');
+					},
+					data: {
+						'ajax_cdb': true, 
+						'keyword_cdb': request.term,
+						'topic_id_list': {S_TOPIC_ID_LIST},
+						'contrib_type' : $('#contrib_type').val(),
+					},
+					success: function(data) {
+						$("#contrib_permalink").removeClass("check-ok check-fail");
+						response($.map(data.contributions, function(item) {
+							return {
+								label: item.name,
+								value: item.value
+							}
+						}));
+					}
+				});
+			},
+			minLength: min_kw_lenght,
+			delay: 150,
+			select: function(event, ui) {
+				if(ui['item']['value']){
+					$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').show();
+					$("#contrib_permalink").addClass("check-ok");
+					flag_cdb = true;
+				}else{
+					$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').hide();
+				}
+			},
+			open: function() {
+				$(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+			},
+			close: function() {
+				$(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+			}
+		});
+	});
+
+	function ajax_contrib_permalink(async_mode)
+	{
+		if($("#contrib_permalink").val()){
+			$.ajax({
+				type: 'POST',
+				url: "{U_AJAX_AUTOCOMPLETE}",
+				dataType: "json",
+				async: async_mode,
+				data: {
+					'ajax_cdb': true, 
+					'keyword_cdb': $('#contrib_permalink').val(),
+					'topic_id_list': {S_TOPIC_ID_LIST},
+					'contrib_type': $('#contrib_type').val(),
+					'mode_cdb': 'check',
+				},
+				beforeSend: function(data) {
+					$("#contrib_permalink").removeClass("check-ok check-fail");
+				},
+				success: function(data) {
+					if(data['result'] == 'ok'){
+						$("#contrib_permalink").addClass("check-ok");
+						$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').show();
+						valid_permalink = true;
+					}else{
+						$("#contrib_permalink").addClass("check-fail");
+						$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').hide();
+						valid_permalink = false;
+					}
+				}
+			});
+		}else{
+			$('#submit-buttons, #div_message_text, #dd_move_pm, #div_move_reason').hide();
+		}
+		return valid_permalink;
+	}
+
+	function change_contrib_type(new_type)
+	{
+		$('#contrib_type').val(new_type);
+		if (new_type == 0)
+		{
+			$('#div_contrib_options, #submit-bloc').hide();
+			return;
+		}
+		else
+		{
+			$('#div_contrib_options, #submit-bloc').show();
+			$("#contrib_permalink").focus();   
+		}
+	}
+	function check_contrib_permalink()
+	{
+		return ajax_contrib_permalink(false);
+	}
+// ]]>
+</script>
+<!-- INCLUDE common/overall_footer.html -->
