@@ -25,9 +25,15 @@
 		<link-group>
 			<link type="dependency" href="https://github.com/phpbb/customisation-db" lang="en">Titania (Customisation Database)</link>
 			<link type="contrib" href="titania.xml" lang="en">Titania Modifications (required)</link>
+			<link type="language" href="fr.xml" lang="en">French Translation</link>
 		</link-group>
 	</header>
 	<action-group>
+		<copy>
+			<file from="root/includes/hooks/hook_move_cdb.php" to="includes/hooks/hook_move_cdb.php"/>
+			<file from="root/includes/mcp/mcp_move_cdb.php" to="includes/mcp/mcp_move_cdb.php"/>
+			<file from="root/language/en/*.*" to="language/en/*.*"/>
+		</copy>
 		<open src="mcp.php">
 			<edit>
 				<find><![CDATA[		case 'move':]]></find>
