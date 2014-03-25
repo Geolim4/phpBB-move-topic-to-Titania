@@ -42,11 +42,11 @@ if (!defined('IN_TITANIA'))
 if (!defined('PHPBB_INCLUDED'))
 {
 	define('PHPBB_INCLUDED', true);
-} 
+}
 if (!defined('TITANIA_ROOT'))
 {
 	define('TITANIA_ROOT', './../customise/db/');
-} 
+}
 if (!defined('PHP_EXT'))
 {
 	define('PHP_EXT', substr(strrchr(__FILE__, '.'), 1));
@@ -173,7 +173,7 @@ function load_cdb($topic_ids)
 		phpbb::$template->assign_vars(array(
 			'S_CDB_MOVE_DELETE'			=> CDB_MOVE_DELETE,
 			'S_AJAX_MIN_CHARS'			=> CDB_AJAX_MIN_CHARS,
-			'S_MOVE_PM_ALERT'			=> CDB_MOVE_PM_ALERT,
+			'S_MOVE_PM_ALERT'			=> ((CDB_MOVE_PM_ALERT && CDB_MOVE_DELETE) ? true : false),
 			'S_CUSTOM_CONFIRM_ACTION'	=> $s_mod_action,
 			'CONTRIB_TYPE_ID'			=> 1, // No constant, 1 == MOD by default (selector)
 			'U_AJAX_AUTOCOMPLETE'		=> append_sid(PHPBB_ROOT_PATH . 'mcp.' . PHP_EXT, array('quickmod' => true, 'action' => 'move_cdb'), false, phpbb::$user->session_id),
@@ -213,7 +213,10 @@ function load_cdb($topic_ids)
 ****/
 function copy_cdb($topic_ids, $contrib, $ctb_row)
 {
-	$topicsrow = $postsrow = $attachrow = $trackrow = $watchrow = array();
+	//Hopefully this help for huge topics
+	@set_time_limit(0);
+
+	$topicsrow = $postsrow = $attachrow = $trackrow = $watchrow = $usersrow = array();
 
 	if (!empty($topic_ids) && !is_array($topic_ids))
 	{
@@ -232,7 +235,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 	}
 
 	// Grab attachements
-	$sql = 'SELECT * 
+	$sql = 'SELECT *
 		FROM ' . ATTACHMENTS_TABLE . '
 		WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids) . '
 		ORDER BY attach_id ASC';
@@ -244,7 +247,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 	phpbb::$db->sql_freeresult($result);
 
 	// Grab tracking
-	$sql = 'SELECT * 
+	$sql = 'SELECT *
 		FROM ' . TOPICS_TRACK_TABLE . '
 		WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids) . '
 		ORDER BY topic_id ASC';
@@ -256,7 +259,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 	phpbb::$db->sql_freeresult($result);
 
 	// Grab watching
-	$sql = 'SELECT * 
+	$sql = 'SELECT *
 		FROM ' . TOPICS_WATCH_TABLE . '
 		WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids) . '
 		ORDER BY topic_id ASC';
@@ -268,7 +271,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 	phpbb::$db->sql_freeresult($result);
 
 	// Grab posts
-	$sql = 'SELECT * 
+	$sql = 'SELECT *
 		FROM ' . POSTS_TABLE . '
 		WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids) . '
 		ORDER BY post_id ASC';
@@ -292,11 +295,12 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 		{
 			$topicposts[$row['topic_id']]['unapproved']++;
 		}
+		$usersrow[$row['topic_id']][] = $row['poster_id'];
 	}
 	phpbb::$db->sql_freeresult($result);
 
 	// Grab topics
-	$sql = 'SELECT * 
+	$sql = 'SELECT *
 		FROM ' . TOPICS_TABLE . '
 		WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids) . '
 		ORDER BY topic_id ASC';
@@ -357,7 +361,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 
 		$posting = new titania_posting();
 		$topic = $posting->load_topic($new_topic_id);
-		$sql_post_ary = $sql_attach_ary = $sql_track_ary = $sql_watch_ary = array();
+		$sql_post_ary = $sql_attach_ary = $sql_track_ary = $sql_watch_ary = $sql_user_ary = array();
 
 		// Re-insert tracking
 		if (!empty($trackrow[$topic_id]))
@@ -395,7 +399,7 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 		// Re-insert posts
 		foreach ($postsrow[$topic_id] AS $post_id => $postsrow_)
 		{
-			$sql = 'INSERT INTO ' . TITANIA_POSTS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', array(
+			$post_data = array(
 				//'post_id'			=> $post_id,// Auto-incremented
 				'topic_id'			=> $new_topic_id,
 				'post_url'			=> titania_url::unbuild_url($topic->get_url()),
@@ -419,9 +423,22 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 				'post_text_uid'		=> $postsrow_['bbcode_uid'],
 				'post_text_options'	=> (($postsrow_['enable_bbcode']) ? OPTION_FLAG_BBCODE : 0) + (($postsrow_['enable_smilies']) ? OPTION_FLAG_SMILIES : 0) + (($postsrow_['enable_magic_url']) ? OPTION_FLAG_LINKS : 0),
 				'post_edit_time'	=> 0,
-			));
+			);
+
+			$sql = 'INSERT INTO ' . TITANIA_POSTS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', $post_data);
 			phpbb::$db->sql_query($sql);
-			$new_post_id = (int) phpbb::$db->sql_nextid();
+			$new_post_id = $post_data['post_id'] = (int) phpbb::$db->sql_nextid();
+
+			// Reindex posts
+			$new_post = new titania_post();
+			$new_post->topic = $topic;
+
+			$new_post->__set_array($post_data);
+			$new_post->sql_data = $post_data;
+			$new_post->topic_id = $topic->topic_id;
+			$new_post->post_url = $post_data['post_url'];
+			$new_post->post_type = $topic->topic_type;
+			$new_post->index();
 
 			//Update user postcount
 			if ($postsrow_['post_approved'] && $postsrow_['post_postcount'])
@@ -487,6 +504,26 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 			}
 		}
 
+		//Add posters to the topic-posted table
+		foreach (array_unique($usersrow[$topic_id]) AS $usersrow_)
+		{
+			$sql_user_ary[] = array(
+				'user_id'		=> $usersrow_,
+				'topic_id'		=> $new_topic_id,
+				'topic_posted'	=> true,
+			);
+		}
+
+		if (!empty($sql_user_ary))
+		{
+			//Prevent PRIMARY key error on: user_id, topic_id
+			phpbb::$db->sql_return_on_error(false);
+			phpbb::$db->sql_multi_insert(TITANIA_TOPICS_POSTED_TABLE, $sql_user_ary);
+			phpbb::$db->sql_return_on_error(true);
+
+			unset($sql_user_ary);
+		}
+
 		$sql = 'SELECT p.*, u.user_id, u.user_colour, u.username
 			FROM ' . TITANIA_POSTS_TABLE . ' p
 			LEFT JOIN ' . USERS_TABLE . ' u
@@ -519,13 +556,28 @@ function copy_cdb($topic_ids, $contrib, $ctb_row)
 					'topic_last_post_time'			=> $row['post_time'],
 					'topic_last_post_subject'		=> $row['post_subject'],
 				);
+				$last_post_update = true;
 			}
 		}
 		phpbb::$db->sql_freeresult($presult);
-		
+
+		// hack for topics with less than 2 posts
+		if(!isset($last_post_update))
+		{
+			$set_ary += array(
+				'topic_last_post_id'			=> $row['post_id'],
+				'topic_last_post_user_id'		=> $row['user_id'],
+				'topic_last_post_user_colour'	=> $row['user_colour'],
+				'topic_last_post_username'		=> $row['username'],
+				'topic_last_post_time'			=> $row['post_time'],
+				'topic_last_post_subject'		=> $row['post_subject'],
+			);
+			unset($last_post_update);
+		}
+
 		// Update Firsters/Lasters
 		$sql = 'UPDATE ' . TITANIA_TOPICS_TABLE . '
-			SET ' . phpbb::$db->sql_build_array('UPDATE', $set_ary) . " 
+			SET ' . phpbb::$db->sql_build_array('UPDATE', $set_ary) . "
 			WHERE topic_id = $new_topic_id";
 		phpbb::$db->sql_query($sql);
 
