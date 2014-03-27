@@ -93,7 +93,7 @@ function cdb_alter_quickmod()
 
 		// Search for Bryan.
 		$move_option = '<option value="move">' . $user->lang['MOVE_TOPIC'] . '</option>';
-		$move_option_cdb .= '<option value="move_cdb">' . $user->lang['CDB_MOVE_TOPIC'] . '</option>';
+		$move_option_cdb = '<option value="move_cdb">' . $user->lang['CDB_MOVE_TOPIC'] . '</option>';
 
 		// Hack the quickmod
 		$s_topic_mod = str_replace($move_option, $move_option . $move_option_cdb, $s_topic_mod);
