@@ -34,52 +34,5 @@
 			<file from="root/includes/mcp/mcp_move_cdb.php" to="includes/mcp/mcp_move_cdb.php"/>
 			<file from="root/language/en/*.*" to="language/en/*.*"/>
 		</copy>
-		<open src="mcp.php">
-			<edit>
-				<find><![CDATA[		case 'move':]]></find>
-				<action type="after-add"><![CDATA[		case 'move_cdb':]]></action>
-			</edit>
-		</open>
-		<open src="viewtopic.php">
-			<edit>
-				<find><![CDATA[$topic_mod .= ($auth->acl_get('m_move', $forum_id) && $topic_data['topic_status'] != ITEM_MOVED) ? '<option value="move">' . $user->lang['MOVE_TOPIC'] . '</option>' : '';]]></find>
-				<action type="after-add"><![CDATA[$topic_mod .= ($auth->acl_get('m_move', $forum_id) && $topic_data['topic_status'] != ITEM_MOVED) ? '<option value="move_cdb">' . $user->lang['CDB_MOVE_TOPIC'] . '</option>' : '';]]></action>
-			</edit>
-		</open>
-		<open src="includes/mcp/mcp_main.php">
-			<edit>
-				<find><![CDATA[			case 'fork':]]></find>
-				<action type="before-add"><![CDATA[			case 'move_cdb':
-				//Include our stuff.
-				include($phpbb_root_path . 'includes/mcp/mcp_move_cdb.' . $phpEx);
-
-				$topic_ids = (!$quickmod) ? request_var('topic_id_list', array(0)) : array(request_var('t', 0));
-				$ajax_cdb = request_var('ajax_cdb', false);
-				$submit_cdb = (!empty($_POST['submit_cdb']) ? true : false);
-
-				if($ajax_cdb)
-				{
-					find_cdb(utf8_normalize_nfc(request_var('keyword_cdb', '', true)));
-				}
-				else
-				{
-					if (check_ids($topic_ids, TOPICS_TABLE, 'topic_id', array('m_move')))
-					{
-						load_cdb($topic_ids);
-					}
-					else
-					{
-						trigger_error('NO_TOPIC_SELECTED');
-					}
-				}
-				if (class_exists('titania'))
-				{
-					titania::page_header('CUSTOMISATION_DATABASE');
-					titania::page_footer(true, 'index_body.html');
-				}
-
-			break;]]></action>
-			</edit>
-		</open>
 	</action-group>
 </mod>
